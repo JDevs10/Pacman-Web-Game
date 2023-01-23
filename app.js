@@ -1,5 +1,18 @@
-const canvas = document.getElementById('TheGame')
-const context = canvas.getContext('2d')
+const Game = {
+    READY: false,
+    gameCanvas: null,
+    gameCanvasContext: null,
+    init: function () {
+        this.gameCanvas = document.getElementById('TheGame')
+        this.gameCanvasContext = this.gameCanvas.getContext('2d')
+        this.gameCanvas.width = window.innerWidth
+        this.gameCanvas.height = window.innerHeight
+        App.READY = true
+    }
+}
 
-canvas.width = window.innerWidth
-canvas.height = window.innerHeight
+window.onload = (e) => {
+    if (!Game.READY) {
+        Game.init()
+    }
+}
