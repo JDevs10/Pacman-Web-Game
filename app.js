@@ -6,6 +6,7 @@ const Game = {
     gameCanvasContext: null,
     map: null,
     boundaries: [],
+    pellets: [],
     player: null,
     keys: {
         z: {pressed: false},
@@ -243,16 +244,16 @@ const Game = {
                             })
                         )
                     break
-                    // case '.':
-                    //     Game.pellets.push(
-                    //         new Game.Pellet({
-                    //             position: {
-                    //                 x: j * Game.Boundary.width + Game.Boundary.width / 2,
-                    //                 y: i * Game.Boundary.height + Game.Boundary.height / 2
-                    //             }
-                    //         })
-                    //     )
-                    // break
+                    case '.':
+                        Game.pellets.push(
+                            new Game.Pellet({
+                                position: {
+                                    x: j * Game.Boundary.width + Game.Boundary.width / 2,
+                                    y: i * Game.Boundary.height + Game.Boundary.height / 2
+                                }
+                            })
+                        )
+                    break
                 }
             })
         })
@@ -276,6 +277,20 @@ const Game = {
             this.draw()
             this.position.x += this.velocity.x
             this.position.y += this.velocity.y
+        }
+    },
+    Pellet: class {
+        constructor({position}) {
+            this.position = position
+            this.radius = 3
+        }
+
+        draw() {
+            Game.gameCanvasContext.beginPath()
+            Game.gameCanvasContext.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+            Game.gameCanvasContext.fillStyle = 'with'
+            Game.gameCanvasContext.fill()
+            Game.gameCanvasContext.closePath()
         }
     },
     initPlayer: function () {
@@ -386,6 +401,10 @@ const Game = {
                 }
             }
         }
+
+        Game.pellets.forEach((pellet) => {
+            pellet.draw()
+        })
 
         Game.boundaries.forEach((boundary) => {
             boundary.draw()
