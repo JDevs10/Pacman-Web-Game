@@ -497,10 +497,10 @@ const Game = {
             }
         }
 
-        //
+        // Ghost collision with player
         for (let i = (Game.ghosts.length - 1); 0 <= i; i--) {
             const ghost = Game.ghosts[i];
-            ghost.update()
+            // ghost.update()
 
             if (Math.hypot(ghost.position.x - Game.player.position.x, ghost.position.y - Game.player.position.y) < ghost.radius + Game.player.radius) {
                 if (ghost.scared) {
@@ -510,6 +510,12 @@ const Game = {
                     console.log('you lose')
                 }
             }
+        }
+
+        // Win the game
+        if (Game.pellets.length === 0) {
+            cancelAnimationFrame(Game.animationId)
+            console.log('You WIN')
         }
 
         //PowerUp collision here
@@ -544,6 +550,7 @@ const Game = {
 
         //Ghost collision here
         Game.ghosts.forEach(ghost => {
+            ghost.update()
 
             const collisions = []
             Game.boundaries.forEach(boundary => {
