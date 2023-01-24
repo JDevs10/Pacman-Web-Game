@@ -31,26 +31,34 @@ const Game = {
         static width =  40;
         static height =  40;
 
-        constructor({ position }) {
+        constructor({ position, image }) {
             this.position = position
             this.width = 40
             this.height = 40
+            this.image = image
         }
 
         draw() {
-            Game.gameCanvasContext.fillStyle = 'blue'
-            Game.gameCanvasContext.fillRect(this.position.x, this.position.y, this.width, this.height)
+            // Game.gameCanvasContext.fillStyle = 'blue'
+            // Game.gameCanvasContext.fillRect(this.position.x, this.position.y, this.width, this.height)
+            Game.gameCanvasContext.drawImage(this.image, this.position.x, this.position.y)
         }
     },
     initBoundaries: function () {
         Game.map = [
-            ['-', '-', '-', '-', '-', '-', '-'],
-            ['-', ' ', ' ', ' ', ' ', ' ', '-'],
-            ['-', ' ', '-', ' ', '-', ' ', '-'],
-            ['-', ' ', ' ', ' ', ' ', ' ', '-'],
-            ['-', ' ', '-', ' ', '-', ' ', '-'],
-            ['-', ' ', ' ', ' ', ' ', ' ', '-'],
-            ['-', '-', '-', '-', '-', '-', '-']
+            ['1', '-', '-', '-', '-', '-', '-', '-', '-', '-', '2'],
+            ['|', '.', '.', '.', '.', '.', '.', '.', '.', '.', '|'],
+            ['|', '.', 'b', '.', '[', '7', ']', '.', 'b', '.', '|'],
+            ['|', '.', '.', '.', '.', '_', '.', '.', '.', '.', '|'],
+            ['|', '.', '[', ']', '.', '.', '.', '[', ']', '.', '|'],
+            ['|', '.', '.', '.', '.', '^', '.', '.', '.', '.', '|'],
+            ['|', '.', 'b', '.', '[', '+', ']', '.', 'b', '.', '|'],
+            ['|', '.', '.', '.', '.', '_', '.', '.', '.', '.', '|'],
+            ['|', '.', '[', ']', '.', '.', '.', '[', ']', '.', '|'],
+            ['|', '.', '.', '.', '.', '^', '.', '.', '.', '.', '|'],
+            ['|', '.', 'b', '.', '[', '5', ']', '.', 'b', '.', '|'],
+            ['|', '.', '.', '.', '.', '.', '.', '.', '.', 'p', '|'],
+            ['4', '-', '-', '-', '-', '-', '-', '-', '-', '-', '3']
         ]
 
         Game.map.forEach((row, i) => {
@@ -62,10 +70,189 @@ const Game = {
                                 position: {
                                     x: Game.Boundary.width * j,
                                     y: Game.Boundary.height * i
-                                }
+                                },
+                                image: Game.createImage('images/pipeHorizontal.png')
                             })
                         )
                     break
+                    case '|':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: Game.Boundary.width * j,
+                                    y: Game.Boundary.height * i
+                                },
+                                image: Game.createImage('images/pipeVertical.png')
+                            })
+                        )
+                    break
+                    case '1':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: Game.Boundary.width * j,
+                                    y: Game.Boundary.height * i
+                                },
+                                image: Game.createImage('images/pipeCorner1.png')
+                            })
+                        )
+                    break
+                    case '2':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: Game.Boundary.width * j,
+                                    y: Game.Boundary.height * i
+                                },
+                                image: Game.createImage('images/pipeCorner2.png')
+                            })
+                        )
+                    break
+                    case '3':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: Game.Boundary.width * j,
+                                    y: Game.Boundary.height * i
+                                },
+                                image: Game.createImage('images/pipeCorner3.png')
+                            })
+                        )
+                    break
+                    case '4':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: Game.Boundary.width * j,
+                                    y: Game.Boundary.height * i
+                                },
+                                image: Game.createImage('images/pipeCorner4.png')
+                            })
+                        )
+                    break
+                    case 'b':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: Game.Boundary.width * j,
+                                    y: Game.Boundary.height * i
+                                },
+                                image: Game.createImage('images/block.png')
+                            })
+                        )
+                    break
+                    case '[':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: j * Game.Boundary.width,
+                                    y: i * Game.Boundary.height
+                                },
+                                image: Game.createImage('images/capLeft.png')
+                            })
+                        )
+                    break
+                    case ']':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: j * Game.Boundary.width,
+                                    y: i * Game.Boundary.height
+                                },
+                                image: Game.createImage('images/capRight.png')
+                            })
+                        )
+                    break
+                    case '_':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: j * Game.Boundary.width,
+                                    y: i * Game.Boundary.height
+                                },
+                                image: Game.createImage('images/capBottom.png')
+                            })
+                        )
+                    break
+                    case '^':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: j * Game.Boundary.width,
+                                    y: i * Game.Boundary.height
+                                },
+                                image: Game.createImage('images/capTop.png')
+                            })
+                        )
+                    break
+                    case '+':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: j * Game.Boundary.width,
+                                    y: i * Game.Boundary.height
+                                },
+                                image: Game.createImage('images/pipeCross.png')
+                            })
+                        )
+                    break
+                    case '5':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: j * Game.Boundary.width,
+                                    y: i * Game.Boundary.height
+                                },
+                                color: 'blue',
+                                image: Game.createImage('images/pipeConnectorTop.png')
+                            })
+                        )
+                    break
+                    case '6':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: j * Game.Boundary.width,
+                                    y: i * Game.Boundary.height
+                                },
+                                color: 'blue',
+                                image: Game.createImage('images/pipeConnectorRight.png')
+                            })
+                        )
+                    break
+                    case '7':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: j * Game.Boundary.width,
+                                    y: i * Game.Boundary.height
+                                },
+                                color: 'blue',
+                                image: Game.createImage('images/pipeConnectorBottom.png')
+                            })
+                        )
+                    break
+                    case '8':
+                        Game.boundaries.push(
+                            new Game.Boundary({
+                                position: {
+                                    x: j * Game.Boundary.width,
+                                    y: i * Game.Boundary.height
+                                },
+                                image: Game.createImage('images/pipeConnectorLeft.png')
+                            })
+                        )
+                    break
+                    // case '.':
+                    //     Game.pellets.push(
+                    //         new Game.Pellet({
+                    //             position: {
+                    //                 x: j * Game.Boundary.width + Game.Boundary.width / 2,
+                    //                 y: i * Game.Boundary.height + Game.Boundary.height / 2
+                    //             }
+                    //         })
+                    //     )
+                    // break
                 }
             })
         })
@@ -141,6 +328,11 @@ const Game = {
                 break
             }
         })
+    },
+    createImage: function (src) {
+        const image = new Image();
+        image.src = src
+        return image
     },
     circleCollidesWithRectangle: function ({circle, rectangle}) {
         return (circle.position.y - circle.radius + circle.velocity.y <= rectangle.position.y + rectangle.height &&
