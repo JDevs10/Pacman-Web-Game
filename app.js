@@ -44,11 +44,13 @@ const Game = {
     },
     initBoundaries: function () {
         Game.map = [
-            ['-', '-', '-', '-', '-', '-'],
-            ['-', ' ', ' ', ' ', ' ', '-'],
-            ['-', ' ', '-', '-', ' ', '-'],
-            ['-', ' ', ' ', ' ', ' ', '-'],
-            ['-', '-', '-', '-', '-', '-']
+            ['-', '-', '-', '-', '-', '-', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', '-', ' ', '-', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', ' ', '-', ' ', '-', ' ', '-'],
+            ['-', ' ', ' ', ' ', ' ', ' ', '-'],
+            ['-', '-', '-', '-', '-', '-', '-']
         ]
 
         Game.map.forEach((row, i) => {
@@ -63,7 +65,7 @@ const Game = {
                                 }
                             })
                         )
-                        break
+                    break
                 }
             })
         })
@@ -140,24 +142,71 @@ const Game = {
             }
         })
     },
+    circleCollidesWithRectangle: function ({circle, rectangle}) {
+        return (circle.position.y - circle.radius + circle.velocity.y <= rectangle.position.y + rectangle.height &&
+            circle.position.x + circle.radius + circle.velocity.x >= rectangle.position.x && 
+            circle.position.y + circle.radius + circle.velocity.y >= rectangle.position.y && 
+            circle.position.x - circle.radius + circle.velocity.x <= rectangle.position.x + rectangle.width)
+    },
     animate: function () {
         requestAnimationFrame(Game.animate)
         Game.gameCanvasContext.clearRect(0, 0, Game.gameCanvas.width, Game.gameCanvas.height)
-        Game.boundaries.forEach((boundary) => {boundary.draw()})
-        Game.player.update();
-
-        Game.player.velocity.x = 0
-        Game.player.velocity.y = 0
 
         if (Game.keys.z.pressed && Game.lastKey === 'z') {
-            Game.player.velocity.y = -5
+            for (let i = 0; i < Game.boundaries.length; i++) {
+                const boundary = Game.boundaries[i]
+                if (Game.circleCollidesWithRectangle({circle: {...Game.player, velocity: {x: 0, y: -5}}, rectangle: boundary})) {
+                    Game.player.velocity.y = 0
+                    break
+                } else {
+                    Game.player.velocity.y = -5
+                }
+            }
+            
         } else if (Game.keys.q.pressed && Game.lastKey === 'q') {
-            Game.player.velocity.x = -5
+            for (let i = 0; i < Game.boundaries.length; i++) {
+                const boundary = Game.boundaries[i]
+                if (Game.circleCollidesWithRectangle({circle: {...Game.player, velocity: {x: -5, y: 0}}, rectangle: boundary})) {
+                    Game.player.velocity.x = 0
+                    break
+                } else {
+                    Game.player.velocity.x = -5
+                }
+            }
         } else if (Game.keys.s.pressed && Game.lastKey === 's') {
-            Game.player.velocity.y = 5
+            for (let i = 0; i < Game.boundaries.length; i++) {
+                const boundary = Game.boundaries[i]
+                if (Game.circleCollidesWithRectangle({circle: {...Game.player, velocity: {x: 0, y: 5}}, rectangle: boundary})) {
+                    Game.player.velocity.y = 0
+                    break
+                } else {
+                    Game.player.velocity.y = 5
+                }
+            }
         } else if (Game.keys.d.pressed && Game.lastKey === 'd') {
-            Game.player.velocity.x = 5
+            for (let i = 0; i < Game.boundaries.length; i++) {
+                const boundary = Game.boundaries[i]
+                if (Game.circleCollidesWithRectangle({circle: {...Game.player, velocity: {x: 5, y: 0}}, rectangle: boundary})) {
+                    Game.player.velocity.x = 0
+                    break
+                } else {
+                    Game.player.velocity.x = 5
+                }
+            }
         }
+
+        Game.boundaries.forEach((boundary) => {
+            boundary.draw()
+
+            if (Game.circleCollidesWithRectangle({circle: Game.player, rectangle: boundary})) {
+                Game.player.velocity.x = 0
+                Game.player.velocity.y = 0
+            }
+        })
+        Game.player.update();
+
+        // Game.player.velocity.x = 0
+        // Game.player.velocity.y = 0
     }
 }
 
