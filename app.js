@@ -46,8 +46,6 @@ const Game = {
         }
 
         draw() {
-            // Game.gameCanvasContext.fillStyle = 'blue'
-            // Game.gameCanvasContext.fillRect(this.position.x, this.position.y, this.width, this.height)
             Game.gameCanvasContext.drawImage(this.image, this.position.x, this.position.y)
         }
     },
@@ -279,31 +277,43 @@ const Game = {
             this.position = position
             this.velocity = velocity
             this.radius = 15
+            this.radians = 0.75
+            this.openRate = 0.12
+            this.rotation = 0
         }
 
         draw() {
+            Game.gameCanvasContext.save()
+            Game.gameCanvasContext.translate(this.position.x, this.position.y)
+            Game.gameCanvasContext.rotate(this.rotation)
+            Game.gameCanvasContext.translate(-this.position.x, -this.position.y)
             Game.gameCanvasContext.beginPath()
-            Game.gameCanvasContext.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+            Game.gameCanvasContext.arc(this.position.x, this.position.y, this.radius, this.radians, Math.PI * 2 - this.radians)
+            Game.gameCanvasContext.lineTo(this.position.x, this.position.y)
             Game.gameCanvasContext.fillStyle = 'yellow'
             Game.gameCanvasContext.fill()
             Game.gameCanvasContext.closePath()
+            Game.gameCanvasContext.restore()
         }
 
         update() {
             this.draw()
             this.position.x += this.velocity.x
             this.position.y += this.velocity.y
+
+            if (this.radians < 0 || this.radians > 0.75) this.openRate = -this.openRate
+            this.radians += this.openRate
         }
     },
     Ghost: class {
-        static speed = 5
+        static speed = 4
         constructor({position, velocity, color = 'red'}) {
             this.position = position
             this.velocity = velocity
             this.radius = 15
             this.color = color
             this.prevCollisions = []
-            this.speed = 5
+            this.speed = 4
             this.scared = false
         }
 
@@ -500,7 +510,6 @@ const Game = {
         // Ghost collision with player
         for (let i = (Game.ghosts.length - 1); 0 <= i; i--) {
             const ghost = Game.ghosts[i];
-            // ghost.update()
 
             if (Math.hypot(ghost.position.x - Game.player.position.x, ghost.position.y - Game.player.position.y) < ghost.radius + Game.player.radius) {
                 if (ghost.scared) {
@@ -583,8 +592,6 @@ const Game = {
 
                 const direction = pathways[Math.floor(Math.random() * pathways.length)]
 
-                console.log(direction)
-
                 switch (direction) {
                     case 'down':
                         ghost.velocity.y = ghost.speed
@@ -605,8 +612,12 @@ const Game = {
                 }
                 ghost.prevCollisions = []
             }
-            console.log(collisions)
         })
+
+        if (Game.player.velocity.x > 0) Game.player.rotation = 0
+        else if (Game.player.velocity.x < 0) Game.player.rotation = Math.PI
+        else if (Game.player.velocity.y > 0) Game.player.rotation = Math.PI / 2
+        else if (Game.player.velocity.y < 0) Game.player.rotation = Math.PI * 1.5
     }
 }
 
