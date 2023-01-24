@@ -9,6 +9,7 @@ const Game = {
     map: null,
     boundaries: [],
     pellets: [],
+    powerUps: [],
     ghosts: [],
     player: null,
     keys: {
@@ -259,6 +260,16 @@ const Game = {
                             })
                         )
                     break
+                    case 'p':
+                        Game.powerUps.push(
+                            new Game.PowerUp({
+                                position: {
+                                    x: j * Game.Boundary.width + Game.Boundary.width / 2,
+                                    y: i * Game.Boundary.height + Game.Boundary.height / 2
+                                }
+                            })
+                        )
+                    break
                 }
             })
         })
@@ -293,12 +304,13 @@ const Game = {
             this.color = color
             this.prevCollisions = []
             this.speed = 5
+            this.scared = false
         }
 
         draw() {
             Game.gameCanvasContext.beginPath()
             Game.gameCanvasContext.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
-            Game.gameCanvasContext.fillStyle = this.color
+            Game.gameCanvasContext.fillStyle = this.scared ? 'blue' : this.color
             Game.gameCanvasContext.fill()
             Game.gameCanvasContext.closePath()
         }
@@ -318,7 +330,21 @@ const Game = {
         draw() {
             Game.gameCanvasContext.beginPath()
             Game.gameCanvasContext.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
-            Game.gameCanvasContext.fillStyle = 'with'
+            Game.gameCanvasContext.fillStyle = 'white'
+            Game.gameCanvasContext.fill()
+            Game.gameCanvasContext.closePath()
+        }
+    },
+    PowerUp: class {
+        constructor({position}) {
+            this.position = position
+            this.radius = 8
+        }
+
+        draw() {
+            Game.gameCanvasContext.beginPath()
+            Game.gameCanvasContext.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+            Game.gameCanvasContext.fillStyle = 'white'
             Game.gameCanvasContext.fill()
             Game.gameCanvasContext.closePath()
         }
@@ -460,7 +486,7 @@ const Game = {
         }
 
         //Pelets collision here
-        for (let i = (Game.pellets.length - 1); 0 < i; i--) {
+        for (let i = (Game.pellets.length - 1); 0 <= i; i--) {
             const pellet = Game.pellets[i];
             pellet.draw()
 
@@ -468,6 +494,39 @@ const Game = {
                 Game.pellets.splice(i, 1)
                 Game.score += 10
                 Game.scoreElement.innerHTML = Game.score
+            }
+        }
+
+        //
+        for (let i = (Game.ghosts.length - 1); 0 <= i; i--) {
+            const ghost = Game.ghosts[i];
+            ghost.update()
+
+            if (Math.hypot(ghost.position.x - Game.player.position.x, ghost.position.y - Game.player.position.y) < ghost.radius + Game.player.radius) {
+                if (ghost.scared) {
+                    Game.ghosts.splice(i, 1)
+                } else {
+                    cancelAnimationFrame(Game.animationId)
+                    console.log('you lose')
+                }
+            }
+        }
+
+        //PowerUp collision here
+        for (let i = (Game.powerUps.length - 1); 0 <= i; i--) {
+            const powerUp = Game.powerUps[i];
+            powerUp.draw()
+
+            if (Math.hypot(powerUp.position.x - Game.player.position.x, powerUp.position.y - Game.player.position.y) < powerUp.radius + Game.player.radius) {
+                Game.powerUps.splice(i, 1)
+
+                // Make ghost scared
+                Game.ghosts.forEach(ghost => {
+                    ghost.scared = true
+                    setTimeout(() => {
+                        ghost.scared = false
+                    }, 5000)
+                })
             }
         }
 
@@ -483,12 +542,8 @@ const Game = {
 
         Game.player.update();
 
+        //Ghost collision here
         Game.ghosts.forEach(ghost => {
-            ghost.update()
-
-            if (Math.hypot(ghost.position.x - Game.player.position.x, ghost.position.y - Game.player.position.y) < ghost.radius + Game.player.radius) {
-                cancelAnimationFrame(Game.animationId)
-            }
 
             const collisions = []
             Game.boundaries.forEach(boundary => {
