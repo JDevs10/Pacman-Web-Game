@@ -1,5 +1,7 @@
 const Game = {
     READY: false,
+    score: 0,
+    scoreElement: null,
     /** @type {HTMLCanvasElement} */
     gameCanvas: null,
     /** @type {CanvasRenderingContext2D} */
@@ -16,6 +18,7 @@ const Game = {
     },
     lastKey: '',
     init: function () {
+        this.scoreElement = document.getElementById('score')
         this.gameCanvas = document.getElementById('TheGame')
         this.gameCanvasContext = this.gameCanvas.getContext('2d')
         this.gameCanvas.width = window.innerWidth
@@ -402,15 +405,19 @@ const Game = {
             }
         }
 
+        //Pelets collision here
         for (let i = (Game.pellets.length - 1); 0 < i; i--) {
             const pellet = Game.pellets[i];
             pellet.draw()
 
             if (Math.hypot(pellet.position.x - Game.player.position.x, pellet.position.y - Game.player.position.y) < pellet.radius + Game.player.radius) {
                 Game.pellets.splice(i, 1)
+                Game.score += 10
+                Game.scoreElement.innerHTML = Game.score
             }
         }
 
+        //Boundaries collision here
         Game.boundaries.forEach((boundary) => {
             boundary.draw()
 
