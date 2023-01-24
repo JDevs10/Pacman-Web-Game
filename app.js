@@ -402,9 +402,14 @@ const Game = {
             }
         }
 
-        Game.pellets.forEach((pellet) => {
+        for (let i = (Game.pellets.length - 1); 0 < i; i--) {
+            const pellet = Game.pellets[i];
             pellet.draw()
-        })
+
+            if (Math.hypot(pellet.position.x - Game.player.position.x, pellet.position.y - Game.player.position.y) < pellet.radius + Game.player.radius) {
+                Game.pellets.splice(i, 1)
+            }
+        }
 
         Game.boundaries.forEach((boundary) => {
             boundary.draw()
@@ -415,9 +420,6 @@ const Game = {
             }
         })
         Game.player.update();
-
-        // Game.player.velocity.x = 0
-        // Game.player.velocity.y = 0
     }
 }
 
