@@ -1,5 +1,7 @@
+import { Utils } from "./utils.js";
 const Game = {
     READY: false,
+    PAUSE: true,
     score: 0,
     scoreElement: null,
     /** @type {HTMLCanvasElement} */
@@ -13,12 +15,14 @@ const Game = {
     ghosts: [],
     player: null,
     keys: {
-        z: {pressed: false},
-        q: {pressed: false},
-        s: {pressed: false},
-        d: {pressed: false}
+        up: {pressed: false},
+        left: {pressed: false},
+        down: {pressed: false},
+        right: {pressed: false}
     },
     lastKey: '',
+    currentKeyboardType: null,
+    availableKeyboards: ['AZERTY', 'QWERTY'],
     init: function () {
         this.scoreElement = document.getElementById('score')
         this.gameCanvas = document.getElementById('TheGame')
@@ -29,6 +33,7 @@ const Game = {
         this.initBoundaries()
         this.initPlayer()
         this.initGhosts()
+        this.initKeyControl()
         this.initMovementKeys()
         this.animate()
 
@@ -396,42 +401,118 @@ const Game = {
             })
         ]
     },
+    /**
+     * @description Functions to manage any storage system
+     */
+    Storage: class{
+        /**
+         * 
+         * @param {String} key 
+         * @returns string | false
+         */
+        static localStorageGet (key) {
+            var local = false;
+            try {local = window.localStorage.getItem(key);} catch (exception) {}
+            return local;
+        }
+        /**
+         * 
+         * @param {String} key 
+         * @param {String} value 
+         * @returns Any | false
+         */
+        static localStorageSet (key, value) {
+            var local = false;
+            try {local = window.localStorage.setItem(key, value);} catch (exception) {}
+            return local;
+        }
+    },
+    KeyControll: class {
+        static mouve = {
+            azerty: {
+                up: ['ArrowUp', 'z'],
+                down: ['ArrowDown', 's'],
+                left: ['ArrowLeft', 'q'],
+                right: ['ArrowRight', 'd']
+            },
+            qwerty: {
+                up: ['ArrowUp', 'w'],
+                down: ['ArrowDown', 's'],
+                left: ['ArrowLeft', 'a'],
+                right: ['ArrowRight', 'd']
+            }
+        }
+
+        static getKeyUP () {
+            return this.mouve[Game.currentKeyboardType.toLowerCase()].up
+        }
+        static getKeyLeft () {
+            return this.mouve[Game.currentKeyboardType.toLowerCase()].left
+        }
+        static getKeyDown () {
+            return this.mouve[Game.currentKeyboardType.toLowerCase()].down
+        }
+        static getKeyRight () {
+            return this.mouve[Game.currentKeyboardType.toLowerCase()].right
+        }
+    },
+    initKeyControl: function () {
+        Game.currentKeyboardType = Game.Storage.localStorageGet('PacmanWebGameKeyboard')
+        if (Utils.Functions.empty(Game.currentKeyboardType)) {
+            const promptWindow = new Game.PromptWindow()
+
+            let str = ''
+            for (let i = 0; i < Game.availableKeyboards.length; i++) {
+                const element = Game.availableKeyboards[i];
+                str += `<div id="keyboardSelect-${i}" class="keyboardSelectButton title" style="padding:4px;">${element}</div>`
+            }
+
+            promptWindow.Prompt('<id ChangeKeyboard><h3 id="keyboardSelectHeader">Select Keyboard</h3>'+
+			'<div class="line"></div>' +
+			str,
+			["cancel"]);
+
+            for (let i in Game.availableKeyboards) {
+                const keyboardType = Game.availableKeyboards[i];
+
+                Utils.Functions.AddEvent(Utils.Functions.load('keyboardSelect-'+i), 'click', function(_keyboardType, _PromptWindow) { 
+                    return function() {
+                        Game.Storage.localStorageSet('PacmanWebGameKeyboard', _keyboardType)
+                        Game.PAUSE = false
+                        _PromptWindow.ClosePrompt()
+                        // to save info in a config, in an other step
+                        window.location.reload()
+                    }
+                }(keyboardType, promptWindow))
+            }
+        } else {Game.PAUSE = false}
+    },
     initMovementKeys: function () {
         addEventListener('keydown', ({key}) => {
-            switch (key) {
-                case 'z':
-                    Game.keys.z.pressed = true
-                    Game.lastKey = 'z'
-                break
-                case 'q':
-                    Game.keys.q.pressed = true
-                    Game.lastKey = 'q'
-                break
-                case 's':
-                    Game.keys.s.pressed = true
-                    Game.lastKey = 's'
-                break
-                case 'd':
-                    Game.keys.d.pressed = true
-                    Game.lastKey = 'd'
-                break
+            if (Game.KeyControll.getKeyUP().includes(key)) {
+                Game.keys.up.pressed = true
+                Game.lastKey = key
+            } else if (Game.KeyControll.getKeyLeft().includes(key)) {
+                Game.keys.left.pressed = true
+                Game.lastKey = key
+            } else if (Game.KeyControll.getKeyDown().includes(key)) {
+                Game.keys.down.pressed = true
+                Game.lastKey = key
+            } else if (Game.KeyControll.getKeyRight().includes(key)) {
+                Game.keys.right.pressed = true
+                Game.lastKey = key
             }
         })
 
         addEventListener('keyup', ({key}) => {
-            switch (key) {
-                case 'z':
-                    Game.keys.z.pressed = false
-                break
-                case 'q':
-                    Game.keys.q.pressed = false
-                break
-                case 's':
-                    Game.keys.s.pressed = false
-                break
-                case 'd':
-                    Game.keys.d.pressed = false
-                break
+            if (Game.KeyControll.getKeyUP().includes(key)) {
+                Game.keys.up.pressed = false
+            } else if (Game.KeyControll.getKeyLeft().includes(key)) {
+                Game.keys.left.pressed = false
+            } else if (Game.KeyControll.getKeyDown().includes(key)) {
+                Game.keys.down.pressed = false
+            } else if (Game.KeyControll.getKeyRight().includes(key)) {
+                Game.keys.right.pressed = false
             }
         })
     },
@@ -449,10 +530,11 @@ const Game = {
     },
     animationId: null,
     animate: function () {
+        if (Game.PAUSE == true) {return}
         Game.animationId = requestAnimationFrame(Game.animate)
         Game.gameCanvasContext.clearRect(0, 0, Game.gameCanvas.width, Game.gameCanvas.height)
 
-        if (Game.keys.z.pressed && Game.lastKey === 'z') {
+        if (Game.keys.up.pressed && Game.KeyControll.getKeyUP().includes(Game.lastKey)) {
             for (let i = 0; i < Game.boundaries.length; i++) {
                 const boundary = Game.boundaries[i]
                 if (Game.circleCollidesWithRectangle({circle: {...Game.player, velocity: {x: 0, y: -5}}, rectangle: boundary})) {
@@ -463,7 +545,7 @@ const Game = {
                 }
             }
             
-        } else if (Game.keys.q.pressed && Game.lastKey === 'q') {
+        } else if (Game.keys.left.pressed && Game.KeyControll.getKeyLeft().includes(Game.lastKey)) {
             for (let i = 0; i < Game.boundaries.length; i++) {
                 const boundary = Game.boundaries[i]
                 if (Game.circleCollidesWithRectangle({circle: {...Game.player, velocity: {x: -5, y: 0}}, rectangle: boundary})) {
@@ -473,7 +555,7 @@ const Game = {
                     Game.player.velocity.x = -5
                 }
             }
-        } else if (Game.keys.s.pressed && Game.lastKey === 's') {
+        } else if (Game.keys.down.pressed && Game.KeyControll.getKeyDown().includes(Game.lastKey)) {
             for (let i = 0; i < Game.boundaries.length; i++) {
                 const boundary = Game.boundaries[i]
                 if (Game.circleCollidesWithRectangle({circle: {...Game.player, velocity: {x: 0, y: 5}}, rectangle: boundary})) {
@@ -483,7 +565,7 @@ const Game = {
                     Game.player.velocity.y = 5
                 }
             }
-        } else if (Game.keys.d.pressed && Game.lastKey === 'd') {
+        } else if (Game.keys.right.pressed && Game.KeyControll.getKeyRight().includes(Game.lastKey)) {
             for (let i = 0; i < Game.boundaries.length; i++) {
                 const boundary = Game.boundaries[i]
                 if (Game.circleCollidesWithRectangle({circle: {...Game.player, velocity: {x: 5, y: 0}}, rectangle: boundary})) {
@@ -618,10 +700,123 @@ const Game = {
         else if (Game.player.velocity.x < 0) Game.player.rotation = Math.PI
         else if (Game.player.velocity.y > 0) Game.player.rotation = Math.PI / 2
         else if (Game.player.velocity.y < 0) Game.player.rotation = Math.PI * 1.5
+    },
+    promptWindow: null,
+    PromptWindow: class {
+        darkenL = null
+        promptAnchorL = null
+        promptWrapL = null
+        promptL = null
+        promptOn = false
+        promptOptionsN = 0
+        promptOptionFocus = 0
+        promptNoClose = false
+
+        constructor() {
+            this.darkenL = Utils.Functions.load('darken');
+            Utils.Functions.AddEvent(this.darkenL, 'click', function(data) {return function(event) {
+                if (!data.promptNoClose) {
+                    data._this.ClosePrompt();
+                }
+            };}({
+                promptNoClose: this.promptNoClose,
+                _this: this
+            }));
+            this.promptAnchorL = Utils.Functions.load('promptAnchor');
+            this.promptWrapL = Utils.Functions.load('prompt');
+            this.promptL = Utils.Functions.load('promptContent');
+            this.promptOn = false;
+            this.promptOptionsN = 0;
+            this.promptOptionFocus = 0;
+            this.promptNoClose = false;
+        }
+
+        Prompt(content, options, style) {
+            this.promptNoClose = false;
+            if (!Utils.Functions.empty(style)) {this.promptWrapL.className = 'framed ' + style;} else {this.promptWrapL.className = 'framed';}
+
+            let str = content;
+            if (str.indexOf('<id ') == 0) {
+                const id = str.substring(4, str.indexOf('>'));
+                str = str.substring(str.indexOf('>') + 1);
+                str = '<div id="promptContent' + id + '">' + str + '</div>';
+            }
+            if (str.includes('<noClose>')) {
+				str = str.replace('<noClose>', '');
+				this.promptNoClose = true;
+			}
+
+            let opts = '';
+			this.promptOptionsN = 0;
+			for (let i = 0; i < options.length; i++) {
+				if (options[i] == 'br') //just a linebreak
+				{opts += '<br>';}
+				else {
+					if (typeof options[i] == 'string') {options[i] = [options[i], 'const p = new Game.PromptWindow(); p.ClosePrompt();'];}
+					else if (!options[i][1]) {options[i] = [options[i][0], 'const p = new Game.PromptWindow(); p.ClosePrompt();', options[i][2]];}
+					else {options[i][1] = options[i][1];}
+
+					options[i][1] = options[i][1].replace(/'/g, '&#39;').replace(/"/g, '&#34;');
+					opts += '<a id="promptOption' + i + '" class="option" ' + (options[i][2] ? 'style="' + options[i][2] + '" ' : '') + '' + 'onclick="' + options[i][1] + '">' + options[i][0] + '</a>';
+					this.promptOptionsN++;
+				}
+			}
+            this.promptL.innerHTML = str + '<div class="optionBox">' + opts + '</div>';
+            this.promptAnchorL.style.display = 'block';
+            this.darkenL.style.display = 'block';
+            this.promptL.focus();
+            this.promptOn = true;
+            this.promptOptionFocus = 0;
+            this.FocusPromptOption(0);
+            this.UpdatePrompt();
+			if (!this.promptNoClose) {Utils.Functions.load('promptClose').style.display = 'block';} else {Utils.Functions.load('promptClose').style.display = 'none';}
+        }
+
+        UpdatePrompt() {
+			this.promptAnchorL.style.top = Math.floor((window.innerHeight - this.promptWrapL.offsetHeight) / (16 - 2)) + 'px';
+		}
+
+        ConfirmPrompt() {
+			if (!Utils.Functions.empty(this.promptOn) && Utils.Functions.load('promptOption' + this.promptOptionFocus) && 
+                Utils.Functions.load('promptOption' + this.promptOptionFocus).style.display != 'none') {
+                Utils.Functions.FireEvent(Utils.Functions.load('promptOption' + this.promptOptionFocus), 'click');
+            }
+		}
+        ClosePrompt() {
+			if (!this.promptOn) return false;
+			this.promptAnchorL.style.display = 'none';
+			this.darkenL.style.display = 'none';
+			this.promptOn = 0;
+			this.promptOptionFocus = 0;
+			this.promptOptionsN = 0;
+			this.promptNoClose = false;
+		}
+        FocusPromptOption(dir, tryN) {
+			let id = this.promptOptionFocus + dir;
+			if (id < 0) {id = this.promptOptionsN - 1;}
+			if (id >= this.promptOptionsN) {id = 0;}
+
+            const promptOptionId = Utils.Functions.load('promptOption' + id);
+			while (id >= 0 && id < this.promptOptionsN && (!Utils.Functions.empty(promptOptionId) || promptOptionId.style.display == 'none')) {
+                id += (dir || 1);
+            }
+			if (Utils.Functions.load('promptOption' + id) && Utils.Functions.load('promptOption' + id).style.display!='none') {
+				if (Utils.Functions.load('promptOption' + this.promptOptionFocus) != null) {
+                    Utils.Functions.load('promptOption' + this.promptOptionFocus).classList.remove('focused');
+                }
+				this.promptOptionFocus = id;
+				if (Utils.Functions.load('promptOption' + this.promptOptionFocus) != null) {
+                    Utils.Functions.load('promptOption' + this.promptOptionFocus).classList.add('focused');
+                }
+			}
+			else if (!Utils.Functions.empty(tryN) && dir != 0) {this.promptOptionFocus = id; this.FocusPromptOption(dir, 1);}
+		}
     }
 }
 
+
 window.onload = (e) => {
+    const Test = 'test var'
     if (!Game.READY) {
         Game.init()
     }

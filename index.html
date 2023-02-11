@@ -6,12 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pacman</title>
     <link rel="stylesheet" href="style.css">
+    <script type="module" src="utils.js"></script>
+    <script type="module" src="app.js"></script>
 </head>
 <body>
+    <div id="darken"></div>
+    <div id="promptAnchor"><div id="prompt" class="framed"><div id="promptContent"></div><div id="promptClose" class="close" style="display:none;">x</div></div></div>
+
     <p style="color: white; font-family: sans-serif; font-size: 14px; margin-bottom: 5px;">
         <span>Score: </span><span id="score">0</span>
     </p>
     <canvas id="TheGame"></canvas>
-    <script src="app.js"></script>
 </body>
 </html>
