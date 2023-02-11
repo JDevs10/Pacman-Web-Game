@@ -731,7 +731,7 @@ const Game = {
             this.promptNoClose = false;
         }
 
-        Prompt(content, options, updateFunc, style) {
+        Prompt(content, options, style) {
             this.promptNoClose = false;
             if (!Utils.Functions.empty(style)) {this.promptWrapL.className = 'framed ' + style;} else {this.promptWrapL.className = 'framed';}
 
